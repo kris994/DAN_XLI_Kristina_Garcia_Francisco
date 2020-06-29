@@ -1,0 +1,9 @@
+﻿<Application x:Class="DAN_XLI_Kristina_Garcia_Francisco.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DAN_XLI_Kristina_Garcia_Francisco"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
