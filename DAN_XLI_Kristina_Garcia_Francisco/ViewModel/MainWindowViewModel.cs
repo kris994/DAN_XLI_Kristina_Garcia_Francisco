@@ -165,11 +165,21 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
                     // Reset progress percentage to ZERO and return
                     bgWorker.ReportProgress(0);
                     return;
-                }    
-                
+                }
+
                 fileName = i + "." + DateTime.Now.Day + "_" + DateTime.Now.Month + "_" +
                     DateTime.Now.Year + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute;
 
+                // Change file name if it already exists
+                int fileCount = 0;
+                while (File.Exists(fileName))
+                {
+                    fileCount++;
+                    fileName = i + "." + DateTime.Now.Day + "_" + DateTime.Now.Month + "_" +
+                        DateTime.Now.Year + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + 
+                        "(" + fileCount.ToString() + ")";                    
+                }
+                
                 // Appends files that are made in the same time, since they have the same name
                 using (StreamWriter streamWriter = new StreamWriter(fileName, append:true))
                 {
