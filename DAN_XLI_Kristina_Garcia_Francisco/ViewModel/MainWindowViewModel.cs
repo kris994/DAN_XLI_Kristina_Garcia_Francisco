@@ -185,8 +185,7 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
                 }
                 else
                 {
-                    // Round to nearest integer value
-                    bgWorker.ReportProgress(Convert.ToInt32(Math.Round(100 / double.Parse(copy))) * i);
+                    bgWorker.ReportProgress((100 / int.Parse(copy)) * i);
                 }
             }
 
