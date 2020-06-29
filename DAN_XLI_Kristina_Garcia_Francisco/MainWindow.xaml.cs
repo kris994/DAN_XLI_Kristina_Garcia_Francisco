@@ -1,6 +1,4 @@
 ﻿using DAN_XLI_Kristina_Garcia_Francisco.ViewModel;
-using System;
-using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
@@ -16,7 +14,6 @@ namespace DAN_XLI_Kristina_Garcia_Francisco
         {
             InitializeComponent();
             this.DataContext = new MainWindowViewModel(this);
-
         }
 
         /// <summary>

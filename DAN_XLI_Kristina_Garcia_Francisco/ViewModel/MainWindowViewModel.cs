@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading;
+using System.Windows;
 using System.Windows.Input;
 
 namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
@@ -12,10 +13,17 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
     /// </summary>
     class MainWindowViewModel : BaseViewModel
     {
+        /// <summary>
+        /// Main window
+        /// </summary>
         readonly MainWindow main;
+        /// <summary>
+        /// Background worker
+        /// </summary>
         private readonly BackgroundWorker bgWorker = new BackgroundWorker();
-        private string fileName = "";
-        private readonly object locker = new object();
+        /// <summary>
+        /// Check if its currently printing
+        /// </summary>
         private bool _isRunning = false;
 
         #region Constructor
@@ -35,6 +43,9 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
         #endregion
 
         #region Properties
+        /// <summary>
+        /// The text field document property
+        /// </summary>
         private string document;
         public string Document
         {
@@ -49,6 +60,9 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             }
         }
 
+        /// <summary>
+        /// The text field copy amount property
+        /// </summary>
         private string copy;
         public string Copy
         {
@@ -63,6 +77,9 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             }
         }
 
+        /// <summary>
+        /// The label field general info property
+        /// </summary>
         private string info;
         public string Info
         {
@@ -77,6 +94,9 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             }
         }
 
+        /// <summary>
+        /// The label field error info property
+        /// </summary>
         private string errInfo;
         public string ErrInfo
         {
@@ -91,6 +111,9 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             }
         }
 
+        /// <summary>
+        /// The progress bar property
+        /// </summary>
         private int currentProgress;
         public int CurrentProgress
         {
@@ -109,22 +132,26 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
         }
         #endregion
 
+        /// <summary>
+        /// Updates the progress bar and prints the value
+        /// </summary>
+        /// <param name="sender">objecy sender</param>
+        /// <param name="e">progress changed event</param>
         private void WorkerOnProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            CurrentProgress = e.ProgressPercentage;
-           
-            if (CurrentProgress == 100)
-            {
-                Info = "Finished printing";
-            }
-            else
-            {
-                Info = CurrentProgress.ToString() + "%";
-            }
+            CurrentProgress = e.ProgressPercentage;         
+            Info = CurrentProgress.ToString() + "%";
         }
 
+        /// <summary>
+        /// Method that the background worker executes
+        /// </summary>
+        /// <param name="sender">object sender</param>
+        /// <param name="e">do work event</param>
         private void WorkerOnDoWork(object sender, DoWorkEventArgs e)
         {
+            string fileName = "";
+
             // Save all the routes to file   
             for (int i = 1; i < int.Parse(copy) + 1; i++)
             {
@@ -143,7 +170,8 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
                 fileName = i + "." + DateTime.Now.Day + "_" + DateTime.Now.Month + "_" +
                     DateTime.Now.Year + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute;
 
-                using (StreamWriter streamWriter = new StreamWriter(fileName))
+                // Appends files that are made in the same time, since they have the same name
+                using (StreamWriter streamWriter = new StreamWriter(fileName, append:true))
                 {
                     streamWriter.WriteLine(document);
                 }
@@ -152,18 +180,31 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
                 // To this method pass the percentage of processing that is complete
                 if (i == int.Parse(copy))
                 {
-                    // 100% if all copies are printed
-                    bgWorker.ReportProgress(100);
+                    // 100% if all copies are printed                    
+                    bgWorker.ReportProgress(100);                   
                 }
                 else
                 {
-                    bgWorker.ReportProgress((100 / int.Parse(copy)) * i);
+                    // Round to nearest integer value
+                    bgWorker.ReportProgress(Convert.ToInt32(Math.Round(100 / double.Parse(copy))) * i);
                 }
             }
 
             ErrInfo = "";
+            _isRunning = false;
+
+            // Cancel the asynchronous operation if still in progress
+            if (bgWorker.IsBusy)
+            {
+                bgWorker.CancelAsync();               
+            }
         }
 
+        /// <summary>
+        /// Print the appropriate message depending how the worker finished.
+        /// </summary>
+        /// <param name="sender">object sender</param>
+        /// <param name="e">worker completed event</param>
         private void WorkerOnRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Cancelled)
@@ -175,9 +216,21 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             else if (e.Error != null)
             {
                 Info = e.Error.Message;
+                _isRunning = false;
+            }
+            else if (CurrentProgress == 100)
+            {
+                Info = "Finished printing";
+                _isRunning = false;
+                MessageBox.Show("Finished printing "+ Copy + " documents.");
             }
         }
 
+        #region ICommand
+
+        /// <summary>
+        /// Print button
+        /// </summary>
         private ICommand print;
         public ICommand Print
         {
@@ -191,9 +244,14 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             }
         }
 
+        /// <summary>
+        /// Check if the button has the needed requirements to execute
+        /// </summary>
+        /// <returns>return true if it has the needed requirements to execute</returns>
         private bool CanPrintExecute()
         {
-            if (Document == null || Copy == null || int.Parse(Copy) == 0)
+            if (string.IsNullOrWhiteSpace(Document) || string.IsNullOrWhiteSpace(Copy) 
+                || int.Parse(Copy) == 0)
             {
                 return false;
             }
@@ -203,6 +261,9 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             }
         }
 
+        /// <summary>
+        /// Start the worker once the button is pressed
+        /// </summary>
         private void PrintExecute()
         {
             if (!bgWorker.IsBusy)
@@ -217,6 +278,9 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             }
         }
 
+        /// <summary>
+        /// Cancel button
+        /// </summary>
         private ICommand cancel;
         public ICommand Cancel
         {
@@ -230,6 +294,10 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             }
         }
 
+        /// <summary>
+        /// Check if the button has the needed requirements to execute
+        /// </summary>
+        /// <returns></returns>
         private bool CanCancelExecute()
         {
             if (_isRunning == true)
@@ -242,6 +310,9 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             }
         }
 
+        /// <summary>
+        /// Stop the worker from executing
+        /// </summary>
         private void CancelExecute()
         {
             if (bgWorker.IsBusy)
@@ -251,5 +322,6 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
                 _isRunning = false;
             }
         }
+        #endregion
     }
 }

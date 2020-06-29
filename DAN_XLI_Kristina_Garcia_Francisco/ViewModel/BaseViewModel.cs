@@ -11,10 +11,7 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
 
         protected virtual void OnPropertyChanged(string propertyName = null)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
