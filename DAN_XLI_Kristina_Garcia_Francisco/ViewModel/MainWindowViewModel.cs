@@ -16,7 +16,7 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
         private readonly BackgroundWorker bgWorker = new BackgroundWorker();
         private string fileName = "";
         private readonly object locker = new object();
-        private bool _isRunning;
+        private bool _isRunning = false;
 
         #region Constructor
         /// <summary>
@@ -31,7 +31,6 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             bgWorker.WorkerSupportsCancellation = true;
             bgWorker.ProgressChanged += WorkerOnProgressChanged;
             bgWorker.RunWorkerCompleted += WorkerOnRunWorkerCompleted;
-            _isRunning = false;
         }
         #endregion
 
@@ -129,7 +128,8 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             // Save all the routes to file   
             for (int i = 1; i < int.Parse(copy) + 1; i++)
             {
-                _isRunning = true;
+                Thread.Sleep(1000);
+
                 // Check if the cancellation is requested
                 if (bgWorker.CancellationPending)
                 {
@@ -138,9 +138,8 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
                     // Reset progress percentage to ZERO and return
                     bgWorker.ReportProgress(0);
                     return;
-                }
-
-                Thread.Sleep(1000);
+                }    
+                
                 fileName = i + "." + DateTime.Now.Day + "_" + DateTime.Now.Month + "_" +
                     DateTime.Now.Year + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute;
 
@@ -210,6 +209,7 @@ namespace DAN_XLI_Kristina_Garcia_Francisco.ViewModel
             {
                 // This method will start the execution asynchronously in the background
                 bgWorker.RunWorkerAsync();
+                _isRunning = true;
             }
             else
             {
